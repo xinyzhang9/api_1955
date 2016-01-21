@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" ng-app = 'api1955_app'>
+<head>
+	<meta charset="UTF-8">
+	<title>FULL MEAN api1955</title>
+	<style>
+		#container{
+			margin: 10px;
+		}
+
+	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+			<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+	<script>
+	//angular code
+		var api1955_app = angular.module('api1955_app',[]);
+		//create a factory
+		api1955_app.factory('personFactory',function($http){
+			factory = {};
+			var persons = [];
+			factory.index = function(callback){
+				console.log('personFactory is loading data.');
+				$http.get('/persons').success(function(output){
+					console.log('personFactory.index success');
+					console.log(output);
+					persons = output;
+					callback(persons);
+				})
+			}
+			factory.create = function(info,callback){
+				console.log('personFactory.create');
+				$http.post('/add/'+info.name).success(function(output){
+					callback(output);
+				})
+			}
+			factory.remove = function(name,callback){
+				$http.post('/remove/'+name).success(function(output){
+					console.log('personFactory.removeFriend success');
+					callback(output);
+				})
+			}
+
+			return factory;
+		})
+
+		//create a controller
+		api1955_app.controller('personsController',function($scope,personFactory){
+			personFactory.index(function(data){
+				console.log(data);
+				$scope.persons = data;
+			});
+			$scope.add = function(){
+				console.log('personsController.add');
+				personFactory.create($scope.newPerson,function(){
+					$scope.newPerson = {};
+
+					personFactory.index(function(data){
+						console.log(data);
+						$scope.persons = data;
+					});
+				})
+			};
+
+			$scope.remove = function(name){
+				console.log('going to remove person named: '+name);
+				personFactory.remove(name,function(){
+
+					personFactory.index(function(data){
+						console.log(data);
+						$scope.persons = data;
+					});
+				})
+			}
+		})
+
+
+	</script>
+
+</head>
+<body ng-controller = 'personsController'>
+	<div id = 'container'>
+		<fieldset>
+			<legend>1955 Dashboard</legend>
+			add people who were born in 1955:
+			<input type="text" ng-model = 'newPerson.name' placeholder = 'name'>
+			<input type="submit" ng-click = 'add()'>
+		</fieldset>
+		<input type="text" ng-model = 'filter_name' placeholder='filter'>
+		<table class = 'table'>
+			<tr>
+				<th>name</th>
+				<th>actions</th>
+			</tr>
+			<tr ng-repeat = 'person in persons | filter:filter_name'>
+				<td ng-bind = 'person.name'></td>
+				<td><input type="submit" ng-click = 'remove(person.name)' class = 'btn btn-danger' value = 'remove'></td>
+			</tr>
+		</table>
+	</div>
+
+</body>
+</html>
